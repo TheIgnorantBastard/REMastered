@@ -1,0 +1,30 @@
+# IDE and workspace metadata
+.vscode/
+.idea/
+*.code-workspace
+
+# Python / virtual environments / cache
+.venv/
+__pycache__/
+*.pyc
+
+# System files
+Thumbs.db
+.DS_Store
+
+# Generated data and dumps
+Data/indexes/
+Data/dumps/
+
+# Original game content (keep tree, but ignore payload)
+Original/dos/
+
+# Ghidra artifacts
+Ghidra/projects/
+
+# Tool configs that will be customized per game
+Tools/configs/dosbox-x.conf
+Tools/configs/*.local.*
+
+# Logs
+*.log

@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  remastered:
+    build: .
+    container_name: remastered-tooling
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    tty: true
+    stdin_open: true
+    environment:
+      - PSModulePath=/workspace/Tools/modules:$PSModulePath
+    # Uncomment to run a default command (otherwise you drop into pwsh)
+    # command: pwsh -NoLogo -File Tools/scripts/Start-GameProject.ps1

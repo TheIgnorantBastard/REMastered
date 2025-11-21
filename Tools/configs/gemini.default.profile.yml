@@ -1,0 +1,8 @@
+# Placeholder Gemini/LLM profile for REMastered projects
+# Configure model, prompts, and task presets per game.
+
+profile_name: default
+model: gemini-pro
+notes: |
+  This is a template configuration for integrating Gemini CLI
+  (or other LLM tooling) with REMastered workflow.

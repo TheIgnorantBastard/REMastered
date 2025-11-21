@@ -1,0 +1,22 @@
+{
+  "name": "Unknown DOS Game",
+  "id": "example-dos-game",
+  "original": {
+    "root": ".\\Original\\dos\\game",
+    "entry_exe": "GAME.EXE"
+  },
+  "docs": {
+    "master_file_doc": ".\\Docs\\Master_File_Document.md",
+    "file_index_md": ".\\Docs\\Game_File_Index.md"
+  },
+  "data": {
+    "indexes_dir": ".\\Data\\indexes",
+    "dumps_dir": ".\\Data\\dumps"
+  },
+  "tools": {
+    "dosbox_config": ".\\Tools\\configs\\dosbox-x.conf",
+    "ghidra_project_dir": ".\\Ghidra\\projects\\Game_Project",
+    "ghidra_scripts_dir": ".\\Ghidra\\scripts",
+    "gemini_profile": ".\\Tools\\configs\\gemini.profile.yml"
+  }
+}
