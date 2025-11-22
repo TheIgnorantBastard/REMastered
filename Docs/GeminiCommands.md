@@ -87,3 +87,24 @@ which slash commands exist and what files they affect.
 - **Outputs:**
   - JSON (or CSV) dump under `Data/indexes/ghidra/`.
   - Inline summary of notable functions/strings.
+
+## /idea-log
+- **Purpose:** Quickly log brainstorming ideas (manually or via Gemini) to
+  `Docs/Ideas.md` and optionally ask the model to suggest new automation tasks.
+- **Inputs:**
+  - `idea` text supplied by user.
+  - Optional `autogen=true` to prompt Gemini to propose an idea.
+- **Command body:**
+  ```
+  /idea-log idea="Build a palette diff visualizer"
+  ```
+  or
+  ```
+  /idea-log autogen=true context="Need more session automation"
+  ```
+- **Behavior:**
+  - Runs `Tools/scripts/Log-Brainstorm.ps1 -Idea <text>`.
+  - If `autogen=true`, Gemini drafts a short idea and the script logs that text.
+- **Outputs:**
+  - Updated `Docs/Ideas.md` with the new entry.
+  - `[ideas]` entry in `Docs/Master_Log.md`.

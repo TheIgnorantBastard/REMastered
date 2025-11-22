@@ -7,7 +7,7 @@ param(
 $scriptRoot = Split-Path -Parent $PSCommandPath
 $repoRoot = Resolve-Path (Join-Path $scriptRoot "..\..")
 $logScript = Join-Path $scriptRoot "Write-MasterLog.ps1"
-& $logScript -Category "ghidra" -Message "Export stub invoked (binary=$Binary, filter=$Filter)"
+& $logScript -Category "ghidra" -Message "Export invoked (binary=$Binary, filter=$Filter)"
 
 try {
     $cfg = & (Join-Path $scriptRoot "Read-GameConfig.ps1") -ConfigPath $ConfigPath
@@ -30,16 +30,44 @@ if (-not (Test-Path $indexesDir)) {
 $timestamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 $outputFile = Join-Path $indexesDir ("${Binary.Replace('.', '_')}-${timestamp}.json")
 
-$placeholder = [ordered]@{
-    binary   = $Binary
-    filter   = $Filter
-    generated_at = $timestamp
-    status   = if ($ghidraProjDir) { "pending-export" } else { "ghidra-project-missing" }
-    notes    = "Replace the body of Export-GhidraData.ps1 with actual headless export logic."
-    results  = @()
+$ghidraHome = $env:GHIDRA_HOME
+$invokeHeadless = Join-Path $scriptRoot "Invoke-GhidraHeadless.ps1"
+$scriptPath = Join-Path $repoRoot "Ghidra\scripts"
+$projectDir = Join-Path $repoRoot $cfg.tools.ghidra_project_dir
+$projectName = [System.IO.Path]::GetFileName($projectDir)
+
+if ($ghidraHome -and (Test-Path $invokeHeadless)) {
+    try {
+        & $invokeHeadless `
+            -ProjectDir $projectDir `
+            -ProjectName $projectName `
+            -BinaryPath $BinaryPath `
+            -GhidraHome $ghidraHome `
+            -ScriptPath $scriptPath `
+            -PostScript $PostScript `
+            -PostScriptArgs $PostScriptArgs | Out-Null
+
+        & $logScript -Category "ghidra" -Message "Headless export completed via Ghidra"
+    }
+    catch {
+        Write-Warning "Ghidra headless export failed: $_"
+        & $logScript -Category "ghidra" -Message "Headless export failed; writing placeholder ($outputFile)"
+        $ghidraHome = $null
+    }
 }
 
-$placeholder | ConvertTo-Json -Depth 5 | Out-File -FilePath $outputFile -Encoding UTF8
+if (-not $ghidraHome) {
+    $placeholder = [ordered]@{
+        binary   = $Binary
+        filter   = $Filter
+        generated_at = $timestamp
+        status   = if ($ghidraProjDir) { "pending-export" } else { "ghidra-project-missing" }
+        notes    = "Set GHIDRA_HOME and add a post-script to generate real data."
+        results  = @()
+    }
 
-Write-Host "Wrote placeholder export to $outputFile" -ForegroundColor Green
-& $logScript -Category "ghidra" -Message "Placeholder export written to $outputFile"
+    $placeholder | ConvertTo-Json -Depth 5 | Out-File -FilePath $outputFile -Encoding UTF8
+    Write-Host "Wrote placeholder export to $outputFile" -ForegroundColor Yellow
+    & $logScript -Category "ghidra" -Message "Placeholder export written to $outputFile"
+}
+Write-Host "Export artifacts stored under Data/indexes/ghidra/" -ForegroundColor Green

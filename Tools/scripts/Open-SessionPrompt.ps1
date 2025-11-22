@@ -19,13 +19,21 @@ function Invoke-HostCommand {
 }
 
 $scriptRoot = Split-Path -Parent $PSCommandPath
+$repoRoot = Resolve-Path (Join-Path $scriptRoot "..\..")
+$dumpsRoot = Join-Path $repoRoot "Data\dumps"
 $captureScript = Join-Path $scriptRoot "Capture-Session.ps1"
 $dumpScript    = Join-Path $scriptRoot "Dump-Memory.ps1"
+$pauseScript   = Join-Path $scriptRoot "Pause-DosboxSession.ps1"
+$resumeScript  = Join-Path $scriptRoot "Resume-DosboxSession.ps1"
 $logScript     = Join-Path $scriptRoot "Write-MasterLog.ps1"
 
 & $logScript -Category "session-hotkey" -Message "Session prompt invoked"
 
-Invoke-HostCommand -Command $PauseCommand
+if (Test-Path $pauseScript) {
+    & $pauseScript -Command $PauseCommand
+} else {
+    Invoke-HostCommand -Command $PauseCommand
+}
 
 $actionText = $null
 $dumpText   = $null
@@ -100,7 +108,11 @@ catch {
 if ([string]::IsNullOrWhiteSpace($actionText)) {
     Write-Host "No action provided. Aborting log entry." -ForegroundColor Yellow
     & $logScript -Category "session-hotkey" -Message "Prompt dismissed with no action"
-    Invoke-HostCommand -Command $ResumeCommand
+    if (Test-Path $resumeScript) {
+        & $resumeScript -Command $ResumeCommand
+    } else {
+        Invoke-HostCommand -Command $ResumeCommand
+    }
     exit 0
 }
 
@@ -110,14 +122,23 @@ if ($dumpText) {
 }
 
 if ($AutoDump) {
-    & $dumpScript -Label $DumpLabel -DryRun
-    $recentDump = Get-ChildItem (Join-Path (Split-Path -Parent $dumpScript) "..\..\Data\dumps") -Filter "*_$(($DumpLabel -replace '[^A-Za-z0-9_-]','_')).bin" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if ($recentDump) {
-        $dumpList += $recentDump.FullName
+    & $dumpScript -Label $DumpLabel -DryRun -Stage 'incoming'
+    $labelFragment = ($DumpLabel -replace '[^A-Za-z0-9_-]','_')
+    if (Test-Path $dumpsRoot) {
+        $recentDump = Get-ChildItem -Path $dumpsRoot -Filter "*_${labelFragment}.bin" -File -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if ($recentDump) {
+            $dumpList += $recentDump.FullName
+        }
     }
 }
 
-& $captureScript -Action $actionText -Dumps $dumpList
+& $captureScript -Action $actionText -Dumps $dumpList -RepoRoot $repoRoot
 & $logScript -Category "session-hotkey" -Message "Action logged via prompt (autoDump=$AutoDump)"
 
-Invoke-HostCommand -Command $ResumeCommand
+if (Test-Path $resumeScript) {
+    & $resumeScript -Command $ResumeCommand
+} else {
+    Invoke-HostCommand -Command $ResumeCommand
+}

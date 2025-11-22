@@ -109,18 +109,59 @@ From here you can start your reverse engineering work:
 - Customize the behavior by editing the mapper or passing additional parameters
   (`-DumpLabel`, `-PauseCommand`, `-ResumeCommand`) to the launcher script.
 
+## Ctrl+F9 idea logging hotkey
+
+- `Tools/scripts/Open-IdeaPrompt.ps1` pops up a lightweight dialog (with console
+  fallback) so you can jot down automation/feature ideas on the spot. It uses
+  `Log-Brainstorm.ps1` under the hood so entries go to `Docs/Ideas.md` and the
+  master log.
+- `Tools/scripts/Launch-IdeaPrompt.cmd` is the binder you can map to **Ctrl+F9**
+  (or any key) inside DOSBox-X or another host. The workflow mirrors Ctrl+F8 but
+  is geared toward brainstorming rather than gameplay logging.
+- You can also call `Log-Brainstorm.ps1` directly from PowerShell/Gemini CLI or
+  use the `/idea-log` slash command (documented in `Docs/GeminiCommands.md`) to
+  log ideas manually or let Gemini propose one for you.
+
 ## Master log
 
 - All helper scripts write to `Docs/Master_Log.md` via `Tools/scripts/Write-MasterLog.ps1`.
 - Each entry is timestamped and tagged (e.g., `[bootstrap]`, `[session]`, `[dump]`, `[ghidra]`).
 - Use this file to see a chronological history of automation actions, which helps avoid repeating work.
 
+## Dump lifecycle & archiving
+
+- Raw captures flow through `Data/dumps/incoming`, `Data/dumps/working`, and
+  `Data/dumps/archive`. Each call to `Dump-Memory.ps1` writes a
+  `<dump>.meta.json` sidecar that records tags, notes, hashes, and history.
+- When you're done analyzing a capture, run
+  `Tools/scripts/Archive-Dump.ps1 -DumpPath <path> [-TargetStage working|archive]`
+  to move or copy it into its long-term home while appending new notes/tags and
+  logging the transition.
+- Because `Data/dumps/` stays gitignored, you can keep as many raw binaries as
+  needed without polluting commits, yet the metadata captures the relevant
+  context that bubbles up into the session logs and master log.
+- Use `Tools/scripts/Summarize-Dumps.ps1` to produce `Docs/Dump_Summary.md`
+  (stage/tag filters + optional history, with per-stage totals) so you can prune
+  stale captures confidently.
+
 ## Script toolbox overview
 
 - `Tools/scripts/New-FormatDoc.ps1` – generates a format doc from `Docs/Templates/FileFormat.template.md`.
 - `Tools/scripts/Get-HexSnippet.ps1` – dumps a formatted hex/ASCII slice of any file/offset.
+- `Tools/scripts/Dump-Memory.ps1` – captures emulator RAM or other binary blobs into
+  `Data/dumps/<stage>/timestamp_label.bin` and writes a `<file>.meta.json` sidecar with
+  tags, notes, and hash info so you can track insights later. Use `-Stage incoming|working|archive`
+  to move captures through the lifecycle.
+- `Tools/scripts/Archive-Dump.ps1` – moves or copies existing dumps between stages,
+  updates metadata history/tags/notes, and records the action in the master log.
+- `Tools/scripts/Summarize-Dumps.ps1` – scans all dump metadata, applies optional stage/tag
+  filters, writes `Docs/Dump_Summary.md`, and logs aggregate counts/sizes for triage.
+- `Tools/scripts/Capture-Session.ps1` – appends Markdown entries to `Docs/Sessions/` with optional dump links.
 - `Tools/scripts/Compare-FileIndex.ps1` – compares `Data/indexes/files.csv` to a previous version (uses git history if no path provided).
-- `Tools/scripts/Capture-Session.ps1` – logs gameplay actions to `Docs/Sessions/`.
-- `Tools/scripts/Dump-Memory.ps1` – captures (or mocks) memory/VRAM dumps into `Data/dumps/`.
-- `Tools/scripts/Open-SessionPrompt.ps1` + `Launch-SessionPrompt.cmd` – Ctrl+F8 workflow described above.
-- `Tools/scripts/Export-GhidraData.ps1` – stub for headless Ghidra exports (writes placeholder JSON for now).
+- `Tools/scripts/Open-SessionPrompt.ps1` + `Launch-SessionPrompt.cmd` – Ctrl+F8 workflow described above (uses `Pause-DosboxSession.ps1` / `Resume-DosboxSession.ps1`).
+- `Tools/scripts/Export-GhidraData.ps1` + `Invoke-GhidraHeadless.ps1` – run real headless Ghidra exports when `GHIDRA_HOME` is configured.
+- `Tools/scripts/Pause-DosboxSession.ps1` / `Resume-DosboxSession.ps1` – wrappers to call your own pause/resume automation or environment-configured commands.
+- `Tools/scripts/Summarize-MasterLog.ps1` – prints the master log by category/date.
+- `Tools/scripts/Verify-FormatDoc.ps1` – checks every file in `Docs/File_Formats/` for required sections and TODOs.
+- `Tools/scripts/Run-CI.ps1` – convenience runner for linting, format verification, and master-log summaries.
+- `Tools/scripts/Log-Brainstorm.ps1` – quick way to append automation/feature ideas to `Docs/Ideas.md` (like an ideas hotkey).
