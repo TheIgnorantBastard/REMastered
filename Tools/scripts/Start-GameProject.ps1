@@ -50,8 +50,26 @@ if (-not (Test-Path $masterDocPath) -and (Test-Path $templatePath)) {
     $content | Out-File -FilePath $masterDocPath -Encoding UTF8
 }
 
-# Run file indexer
+# Bootstrap planning templates (task types, onboarding tasks, difficulties log)
+$difficultiesLogPath = ".\Docs\Difficulties_Log.md"
+if (-not (Test-Path $difficultiesLogPath)) {
+    "# Difficulties Log`n`nShort notes about issues encountered by the /replan agent and ideas to improve future runs.`n" |
+        Out-File -FilePath $difficultiesLogPath -Encoding UTF8
+}
+
 $indexesDir = $cfg.data.indexes_dir
+$taskTypesTemplate = ".\Tools\configs\task_types.template.json"
+$onboardingTasksTemplate = ".\Tools\configs\onboarding_tasks.template.json"
+
+if (-not (Test-Path (Join-Path $indexesDir "task_types.json")) -and (Test-Path $taskTypesTemplate)) {
+    Copy-Item -Path $taskTypesTemplate -Destination (Join-Path $indexesDir "task_types.json") -Force
+}
+
+if (-not (Test-Path (Join-Path $indexesDir "onboarding_tasks.json")) -and (Test-Path $onboardingTasksTemplate)) {
+    Copy-Item -Path $onboardingTasksTemplate -Destination (Join-Path $indexesDir "onboarding_tasks.json") -Force
+}
+
+# Run file indexer
 $fileCsv    = Join-Path $indexesDir "files.csv"
 $fileIndexMd = $cfg.docs.file_index_md
 

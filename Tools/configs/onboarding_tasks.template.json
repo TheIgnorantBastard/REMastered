@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": "onboard-001",
+      "title": "Generate initial file index and master file document",
+      "type": "housekeeping",
+      "status": "pending",
+      "script": "Tools/scripts/Generate_File_Index.ps1",
+      "notes": "Produces Data/indexes/files.csv and updates Docs/Master_File_Document.md."
+    },
+    {
+      "id": "onboard-002",
+      "title": "Run first headless Ghidra analysis on main EXE",
+      "type": "code_analysis",
+      "status": "pending",
+      "script": "Tools/scripts/Analyze-GameBinary.ps1",
+      "notes": "Prepares Data/indexes/ghidra_symbols.json (once the adapter is implemented)."
+    },
+    {
+      "id": "onboard-003",
+      "title": "Perform first runtime observation run",
+      "type": "runtime_observation",
+      "status": "pending",
+      "instructions_for_user": "Start the game, create 5 new characters, save, then exit. After that, run Dump-Memory.ps1 and Capture-Session.ps1.",
+      "notes": "Links runtime behavior to save/dump artifacts."
+    }
+  ]
+}

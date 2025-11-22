@@ -1,0 +1,40 @@
+{
+  "task_types": [
+    {
+      "id": "format_discovery",
+      "description": "Understand and document the structure of original game files.",
+      "typical_tools": [
+        "Tools/scripts/Generate_File_Index.ps1",
+        "Ghidra exports",
+        "Data/dumps metadata"
+      ],
+      "good_early_game": true
+    },
+    {
+      "id": "runtime_observation",
+      "description": "Perform controlled in-game actions and capture resulting data/dumps.",
+      "typical_tools": [
+        "Tools/scripts/Open-SessionPrompt.ps1",
+        "Tools/scripts/Dump-Memory.ps1"
+      ],
+      "good_early_game": true
+    },
+    {
+      "id": "code_analysis",
+      "description": "Use Ghidra to identify key code paths and loaders.",
+      "typical_tools": [
+        "Tools/scripts/Analyze-GameBinary.ps1"
+      ],
+      "good_early_game": false
+    },
+    {
+      "id": "housekeeping",
+      "description": "Keep indexes, status docs, and summaries up to date.",
+      "typical_tools": [
+        "Tools/scripts/Generate_File_Index.ps1",
+        "Tools/scripts/Summarize-Dumps.ps1"
+      ],
+      "good_early_game": true
+    }
+  ]
+}
