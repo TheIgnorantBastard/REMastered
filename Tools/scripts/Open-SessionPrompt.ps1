@@ -1,39 +1,17 @@
 param(
     [switch]$AutoDump,
-    [string]$DumpLabel = "hotkey",
-    [string]$PauseCommand,
-    [string]$ResumeCommand,
-    [string]$ConfigPath = "game.json"
+    [string]$DumpLabel = "session",
+    [string]$SessionFile
 )
-
-function Invoke-HostCommand {
-    param([string]$Command)
-    if ([string]::IsNullOrWhiteSpace($Command)) { return }
-    try {
-        Write-Host "Running host command: $Command" -ForegroundColor DarkCyan
-        Invoke-Expression $Command
-    }
-    catch {
-        Write-Warning "Failed to run host command: $_"
-    }
-}
 
 $scriptRoot = Split-Path -Parent $PSCommandPath
 $repoRoot = Resolve-Path (Join-Path $scriptRoot "..\..")
 $dumpsRoot = Join-Path $repoRoot "Data\dumps"
 $captureScript = Join-Path $scriptRoot "Capture-Session.ps1"
 $dumpScript    = Join-Path $scriptRoot "Dump-Memory.ps1"
-$pauseScript   = Join-Path $scriptRoot "Pause-DosboxSession.ps1"
-$resumeScript  = Join-Path $scriptRoot "Resume-DosboxSession.ps1"
 $logScript     = Join-Path $scriptRoot "Write-MasterLog.ps1"
 
-& $logScript -Category "session-hotkey" -Message "Session prompt invoked"
-
-if (Test-Path $pauseScript) {
-    & $pauseScript -Command $PauseCommand
-} else {
-    Invoke-HostCommand -Command $PauseCommand
-}
+& $logScript -Category "session-prompt" -Message "Session prompt invoked"
 
 $actionText = $null
 $dumpText   = $null
@@ -107,13 +85,8 @@ catch {
 
 if ([string]::IsNullOrWhiteSpace($actionText)) {
     Write-Host "No action provided. Aborting log entry." -ForegroundColor Yellow
-    & $logScript -Category "session-hotkey" -Message "Prompt dismissed with no action"
-    if (Test-Path $resumeScript) {
-        & $resumeScript -Command $ResumeCommand
-    } else {
-        Invoke-HostCommand -Command $ResumeCommand
-    }
-    exit 0
+    & $logScript -Category "session-prompt" -Message "Prompt dismissed with no action"
+    return
 }
 
 $dumpList = @()
@@ -134,11 +107,10 @@ if ($AutoDump) {
     }
 }
 
-& $captureScript -Action $actionText -Dumps $dumpList -RepoRoot $repoRoot
-& $logScript -Category "session-hotkey" -Message "Action logged via prompt (autoDump=$AutoDump)"
-
-if (Test-Path $resumeScript) {
-    & $resumeScript -Command $ResumeCommand
+if ($SessionFile) {
+    & $captureScript -Action $actionText -Dumps $dumpList -RepoRoot $repoRoot -SessionFile $SessionFile
 } else {
-    Invoke-HostCommand -Command $ResumeCommand
+    & $captureScript -Action $actionText -Dumps $dumpList -RepoRoot $repoRoot
 }
+
+& $logScript -Category "session-prompt" -Message "Action logged via prompt (autoDump=$AutoDump)"
