@@ -76,9 +76,51 @@ From here you can start your reverse engineering work:
   All generated files (indexes, docs, dumps) remain on the host filesystem.
 - Feel free to add more services/commands (e.g., headless Dosbox-X MCP, Ghidra
   exporters) to the compose file if your workflow needs them.
+- A helper service `dosbox_headless` is already defined. Launch it with:
+
+  ```powershell
+  docker compose run --rm dosbox_headless
+  ```
+
+  This will run dosbox-x with captures pointed at `Data/dumps/`, letting you
+  script memory/VRAM dumps without touching your local DOSBox setup.
 
 ## Gemini custom slash commands
 
 - `Docs/GeminiCommands.md` documents slash commands that wrap common tasks
   (e.g., regenerating the file index, logging gameplay sessions, analyzing
   map headers). Use it as a central registry when you add new scripted actions.
+
+## Ctrl+F8 session logging hotkey
+
+- `Tools/scripts/Open-SessionPrompt.ps1` launches a small dialog so you can pause
+  the game, describe what you just did, and optionally attach dump files. It
+  calls `Capture-Session.ps1` (and `Dump-Memory.ps1` when `-AutoDump` is used).
+- A helper launcher `Tools/scripts/Launch-SessionPrompt.cmd` is provided so the
+  script can be triggered from DOSBox-X key bindings.
+- To wire it up:
+  1. In your per-game `dosbox-x.conf`, keep `mapperfile=Tools/configs/mapper.map`.
+  2. Start DOSBox-X, press **Ctrl+F1** to open the mapper, select an unused key
+     (e.g., **Ctrl+F8**), and bind it to run the host command
+     `Tools/scripts/Launch-SessionPrompt.cmd -AutoDump`.
+  3. Close the mapper to save the binding. Pressing Ctrl+F8 now pauses the game,
+     shows the logging prompt, writes the entry under `Docs/Sessions/`, and
+     resumes the emulator when you dismiss the dialog.
+- Customize the behavior by editing the mapper or passing additional parameters
+  (`-DumpLabel`, `-PauseCommand`, `-ResumeCommand`) to the launcher script.
+
+## Master log
+
+- All helper scripts write to `Docs/Master_Log.md` via `Tools/scripts/Write-MasterLog.ps1`.
+- Each entry is timestamped and tagged (e.g., `[bootstrap]`, `[session]`, `[dump]`, `[ghidra]`).
+- Use this file to see a chronological history of automation actions, which helps avoid repeating work.
+
+## Script toolbox overview
+
+- `Tools/scripts/New-FormatDoc.ps1` – generates a format doc from `Docs/Templates/FileFormat.template.md`.
+- `Tools/scripts/Get-HexSnippet.ps1` – dumps a formatted hex/ASCII slice of any file/offset.
+- `Tools/scripts/Compare-FileIndex.ps1` – compares `Data/indexes/files.csv` to a previous version (uses git history if no path provided).
+- `Tools/scripts/Capture-Session.ps1` – logs gameplay actions to `Docs/Sessions/`.
+- `Tools/scripts/Dump-Memory.ps1` – captures (or mocks) memory/VRAM dumps into `Data/dumps/`.
+- `Tools/scripts/Open-SessionPrompt.ps1` + `Launch-SessionPrompt.cmd` – Ctrl+F8 workflow described above.
+- `Tools/scripts/Export-GhidraData.ps1` – stub for headless Ghidra exports (writes placeholder JSON for now).

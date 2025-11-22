@@ -13,3 +13,14 @@ services:
       - PSModulePath=/workspace/Tools/modules:$PSModulePath
     # Uncomment to run a default command (otherwise you drop into pwsh)
     # command: pwsh -NoLogo -File Tools/scripts/Start-GameProject.ps1
+
+  dosbox_headless:
+    build: .
+    container_name: remastered-dosbox
+    working_dir: /workspace
+    volumes:
+      - ./:/workspace
+    command: >-
+      dosbox-x -exit -fastlaunch -set "captures=./Data/dumps" -set "mapperfile=./Tools/configs/mapper.map"
+    stdin_open: true
+    tty: true

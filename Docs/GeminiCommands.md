@@ -54,3 +54,36 @@ inputs, command body, outputs, and any files it touches.
 Add more commands here as you automate other workflows (palette analysis,
 audio module disassembly, etc.). Keep this list authoritative so everyone knows
 which slash commands exist and what files they affect.
+
+## /palette-analyze
+- **Purpose:** Inspect palette or gradient data (e.g., `PALETTES.DAT`) and append
+  structured notes to `Docs/File_Formats/PALETTE.md`.
+- **Inputs:**
+  - Hex dump slice or offsets.
+  - Optional screenshot/PNG snippets.
+- **Command body:**
+  ```
+  /palette-analyze file="PALETTES.DAT" range="0x000-0x400" notes="looks like ramps"
+  ```
+  - Gemini explains the observed RGB ranges, counts palettes, and updates the
+    palette format doc (creating it if necessary).
+- **Outputs:**
+  - Updated `Docs/File_Formats/PALETTE.md` with new sections.
+  - Inline TL;DR for quick reference.
+
+## /ghidra-export
+- **Purpose:** Automate export of Ghidra symbols/strings for a specific module
+  and summarize interesting references.
+- **Inputs:**
+  - Target binary (e.g., `RUN.EXE`).
+  - Optional filters (e.g., only functions referencing `MAP` strings).
+- **Command body:**
+  ```
+  /ghidra-export binary="RUN.EXE" filter="MAP"
+  ```
+  - Runs a PyGhidra/Headless script via PowerShell that dumps the results to
+    `Data/indexes/ghidra/<binary>-symbols.json`.
+  - Gemini summarizes new/changed entries and suggests next investigation steps.
+- **Outputs:**
+  - JSON (or CSV) dump under `Data/indexes/ghidra/`.
+  - Inline summary of notable functions/strings.

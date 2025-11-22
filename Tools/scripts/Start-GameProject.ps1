@@ -2,10 +2,13 @@ param(
     [string]$ConfigPath = "game.json"
 )
 
-$here = Split-Path -Parent $PSCommandPath
-Set-Location $here
+$scriptRoot = Split-Path -Parent $PSCommandPath
+Set-Location $scriptRoot
 
-$cfg = & ".\Tools\scripts\Read-GameConfig.ps1" -ConfigPath $ConfigPath
+$readCfgScript = Join-Path $scriptRoot "Read-GameConfig.ps1"
+$logScript = Join-Path $scriptRoot "Write-MasterLog.ps1"
+$cfg = & $readCfgScript -ConfigPath $ConfigPath
+& $logScript -Category "bootstrap" -Message "Start-GameProject invoked (config=$ConfigPath)"
 
 # Resolve important paths
 $originalRoot = Resolve-Path $cfg.original.root -ErrorAction Stop
@@ -58,3 +61,4 @@ $fileIndexMd = $cfg.docs.file_index_md
     -CsvOutput $fileCsv
 
 Write-Host "Start-GameProject completed." -ForegroundColor Green
+& $logScript -Category "bootstrap" -Message "Start-GameProject completed (root=$originalRoot)"
